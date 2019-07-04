@@ -50,7 +50,7 @@ pipeline {
             parallel {
                 stage('Disk usage') {
                     steps {
-                        sh 'du -cskh */target/* | grep -E "target/scenario|target/lib"'
+                        sh 'du -cskh */*"'
                     }
                 }
                 stage('Archive artifacts') {
