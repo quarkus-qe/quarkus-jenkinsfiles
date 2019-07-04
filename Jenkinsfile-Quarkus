@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'graalvm'
+    }
+    options {
+        timestamps()
+        ansiColor("xterm")
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/quarkusio/quarkus'
+            }
+        }
+        stage ('Initialize') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    which java
+                ''' 
+            }
+        }
+        stage('Build') {
+            steps {
+                sh './mvnw clean install -DskipTests -DskipITs'
+            }
+        }
+        stage('Test JVM') {
+            steps {
+                sh './mvnw clean verify'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Test Native') {
+            steps {
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw clean verify -Dnative'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Reports') {
+            parallel {
+                stage('Disk usage') {
+                    steps {
+                        sh 'du -cskh */target/* | grep -E "target/scenario|target/lib"'
+                    }
+                }
+                stage('Archive artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
+                    }
+                }
+                stage('Documentation') {
+                    steps {
+                        publishHTML target: [
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: false,
+                            keepAll: true,
+                            reportDir: 'docs/target/generated-docs',
+                            reportFiles: 'index.html',
+                            reportName: 'Quarkus documentation'
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
