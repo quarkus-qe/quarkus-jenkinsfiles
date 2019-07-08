@@ -50,7 +50,7 @@ pipeline {
             parallel {
                 stage('Disk usage') {
                     steps {
-                        sh 'du -cskh */*"'
+                        sh 'du -cskh */*'
                     }
                 }
                 stage('Archive artifacts') {
