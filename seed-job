@@ -1,0 +1,3 @@
+pipelineJob("quarkus-pipeline-Quarkus") { definition { cpsScm { scm { git("https://github.com/quarkus-qe/quarkus-jenkinsfiles.git")}
+      scriptPath("Jenkinsfile-Quarkus")    } } }
+pipelineJob("quarkus-pipeline-beefy-scenarios") { definition { cpsScm { scm { git("https://github.com/quarkus-qe/beefy-scenarios.git")} } } }
