@@ -1,0 +1,14 @@
+hudson.FilePath workspace = hudson.model.Executor.currentExecutor().getCurrentWorkspace()
+def list = workspace.list("Jenkinsfile-*")
+list.each {
+  def fileName = it.getName()
+  def name = fileName.replaceAll('Jenkinsfile', 'quarkus-pipeline')          
+  println "File name: ${fileName} => pipeline name: ${name}"
+  pipelineJob("${name}") {
+    definition {
+        cps {
+            script(readFileFromWorkspace("${fileName}"))
+        }
+    }
+  }
+}
