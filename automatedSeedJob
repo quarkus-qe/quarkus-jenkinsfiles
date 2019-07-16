@@ -8,6 +8,7 @@ list.each {
     definition {
         cps {
             script(readFileFromWorkspace("${fileName}"))
+            sandbox()
         }
     }
   }
