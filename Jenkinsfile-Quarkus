@@ -31,6 +31,9 @@ pipeline {
             }
         }
         stage('Test JVM') {
+            options {
+                timeout(time: 30, unit: 'MINUTES')
+            }
             steps {
                 sh './mvnw -fn clean verify'
             }
@@ -41,6 +44,9 @@ pipeline {
             }
         }
         stage('Test Native') {
+            options {
+                timeout(time: 2, unit: 'HOURS')
+            }
             steps {
                 sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
             }
