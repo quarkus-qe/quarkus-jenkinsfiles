@@ -30,7 +30,7 @@ pipeline {
                 timeout(time: 15, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn clean verify'
+                sh 'TESTCONTAINERS_RYUK_DISABLED=true ./mvnw -fn clean verify'
             }
             post {
                 always {
@@ -55,7 +55,7 @@ pipeline {
                 timeout(time: 1, unit: 'HOURS')
             }
             steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
+                sh 'GRAALVM_HOME=$JAVA_HOME TESTCONTAINERS_RYUK_DISABLED=true ./mvnw -fn clean verify -Dnative'
             }
             post {
                 always {
