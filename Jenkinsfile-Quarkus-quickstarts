@@ -52,7 +52,7 @@ pipeline {
         }
         stage('Test Native') {
             options {
-                timeout(time: 1, unit: 'HOURS')
+                timeout(time: 2, unit: 'HOURS')
             }
             steps {
                 sh 'GRAALVM_HOME=$JAVA_HOME TESTCONTAINERS_RYUK_DISABLED=true ./mvnw -fn clean verify -Dnative'
