@@ -35,7 +35,7 @@ pipeline {
                 timeout(time: 60, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-keycloak -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
             }
             post {
                 always {
@@ -48,7 +48,7 @@ pipeline {
                 timeout(time: 4, unit: 'HOURS')
             }
             steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-keycloak -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
             }
             post {
                 always {
