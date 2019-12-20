@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+    triggers {
+        cron('H H(18-23) * * *')
+    }
+    tools {
+        jdk 'graalvm'
+    }
+    options {
+        timestamps()
+        ansiColor("xterm")
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/quarkusio/quarkus'
+            }
+        }
+        stage ('Initialize') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    which java
+                ''' 
+            }
+        }
+        stage('Build') {
+            steps {
+                sh './mvnw clean install -DskipTests -DskipITs'
+            }
+        }
+        stage('Test JVM') {
+            options {
+                timeout(time: 60, unit: 'MINUTES')
+            }
+            steps {
+                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-keycloak -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Test Native') {
+            options {
+                timeout(time: 4, unit: 'HOURS')
+            }
+            steps {
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-keycloak -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Reports') {
+            parallel {
+                stage('Disk usage') {
+                    steps {
+                        sh 'du -cskh */*'
+                    }
+                }
+                stage('Archive artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
+                    }
+                }
+                stage('Documentation') {
+                    steps {
+                        publishHTML target: [
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: false,
+                            keepAll: true,
+                            reportDir: 'docs/target/generated-docs',
+                            reportFiles: 'index.html',
+                            reportName: 'Quarkus documentation'
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
