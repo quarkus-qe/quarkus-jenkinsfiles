@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    triggers {
+        cron('H H(16-20) */2 * *')
+    }
+    tools {
+        jdk 'graalvm'
+    }
+    options {
+        timestamps()
+        ansiColor("xterm")
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/quarkusio/quarkus'
+            }
+        }
+        stage('JaCoCo run') {
+            options {
+                timeout(time: 60, unit: 'MINUTES')
+            }
+            steps {
+                sh './mvnw -fn -Pjacoco clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+            }
+        }
+        stage('JaCoCo report') {
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
+            steps {
+                sh './mvnw antrun:run@jacoco-all-in-one-report -Pjacoco-report'
+            }
+        }
+        stage('Reports') {
+            steps {
+                archiveArtifacts artifacts: 'target/jacoco-report/**', fingerprint: false
+                publishHTML target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: 'target/jacoco-report/',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo report'
+                ]
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
