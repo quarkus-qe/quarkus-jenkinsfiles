@@ -22,7 +22,7 @@ pipeline {
                 timeout(time: 90, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn -Pjacoco clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh './mvnw -fn -Ptest-coverage clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
             }
         }
         stage('JaCoCo report') {
@@ -30,17 +30,17 @@ pipeline {
                 timeout(time: 5, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw antrun:run@jacoco-all-in-one-report -Pjacoco-report'
+                sh './mvnw -f coverage-report/pom.xml package'
             }
         }
         stage('Reports') {
             steps {
-                archiveArtifacts artifacts: 'target/jacoco-report/**', fingerprint: false
+                archiveArtifacts artifacts: 'coverage-report/target/site/jacoco/**', fingerprint: false
                 publishHTML target: [
                     allowMissing: false,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: 'target/jacoco-report/',
+                    reportDir: 'coverage-report/target/site/jacoco/',
                     reportFiles: 'index.html',
                     reportName: 'JaCoCo report'
                 ]
