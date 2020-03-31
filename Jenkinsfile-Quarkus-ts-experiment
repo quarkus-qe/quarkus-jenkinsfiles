@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'graalvm'
+    }
+    options {
+        timestamps()
+        ansiColor("xterm")
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: '1.3-ts-experiment', url: 'https://github.com/rsvoboda/quarkus'
+            }
+        }
+        stage ('Initialize') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    which java
+                ''' 
+            }
+        }
+        stage('Build') {
+            steps {
+                sh './mvnw -f integration-tests/pom.xml clean install -DskipTests -DskipITs'
+            }
+        }
+        stage('Test JVM') {
+            options {
+                timeout(time: 1, unit: 'HOURS')
+            }
+            steps {
+                sh './mvnw -f integration-tests/pom.xml -fn clean verify'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        // stage('Test Native') {
+        //     options {
+        //         timeout(time: 3, unit: 'HOURS')
+        //     }
+        //     steps {
+        //         sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
+        //     }
+        //     post {
+        //         always {
+        //             junit '**/target/*-reports/TEST*.xml'
+        //         }
+        //     }
+        // }
+        stage('Reports') {
+            parallel {
+                stage('Disk usage') {
+                    steps {
+                        sh 'du -cskh */*'
+                    }
+                }
+                stage('Archive artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
