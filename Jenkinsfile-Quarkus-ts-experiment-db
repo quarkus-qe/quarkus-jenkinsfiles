@@ -1,0 +1,124 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'graalvm'
+    }
+    options {
+        timestamps()
+        ansiColor("xterm")
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: '1.3-ts-experiment', url: 'https://github.com/rsvoboda/quarkus'
+            }
+        }
+        stage('Test postgres:10.12') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-postgresql -Ddocker -Dtest-postgresql -Dpostgres.image="postgres:10.12"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test postgres:11.7') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-postgresql -Ddocker -Dtest-postgresql -Dpostgres.image="postgres:11.7"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test postgres:12.2') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-postgresql -Ddocker -Dtest-postgresql -Dpostgres.image="postgres:12.2"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+
+        stage('Test mysql:8.0.19') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mysql -Ddocker -Dtest-mysql -Dmysql.image="mysql:8.0.19"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test mysql:5.7.29') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mysql -Ddocker -Dtest-mysql -Dmysql.image="mysql:5.7.29"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+
+        stage('Test mariadb:10.5') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mariadb -Ddocker -Dtest-mariadb -Dmariadb.image="mariadb:10.5"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test mariadb:10.4') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mariadb -Ddocker -Dtest-mariadb -Dmariadb.image="mariadb:10.4"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test mariadb:10.3') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mariadb -Ddocker -Dtest-mariadb -Dmariadb.image="mariadb:10.3"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+
+        stage('Test mssql 2017-CU12') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mssql -Ddocker -Dtest-mssql -Dmssqldb.image="microsoft/mssql-server-linux:2017-CU12"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test mssql 2017-CU19') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mssql -Ddocker -Dtest-mssql -Dmssqldb.image="mcr.microsoft.com/mssql/server:2017-CU19-ubuntu-16.04"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+        stage('Test mssql 2019-CU3') {
+            steps {
+               sh './mvnw -f integration-tests/pom.xml clean dependency:tree install -pl jpa-mssql -Ddocker -Dtest-mssql -Dmssqldb.image="mcr.microsoft.com/mssql/server:2019-CU3-ubuntu-16.04"'
+            }
+            post {
+                always { junit '**/target/*-reports/TEST*.xml' }
+            }
+        }
+
+        stage('Reports') {
+            parallel {
+                stage('Archive artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
