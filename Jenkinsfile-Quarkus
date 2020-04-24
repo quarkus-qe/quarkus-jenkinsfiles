@@ -45,7 +45,7 @@ pipeline {
         }
         stage('Test Native') {
             options {
-                timeout(time: 3, unit: 'HOURS')
+                timeout(time: 4, unit: 'HOURS')
             }
             steps {
                 sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
