@@ -17,17 +17,9 @@ pipeline {
                 git 'https://github.com/quarkusio/quarkus'
             }
         }
-        stage ('Initialize') {
-            steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    which java
-                ''' 
-            }
-        }
         stage('Build') {
             steps {
-                sh './mvnw clean install -DskipTests -DskipITs'
+                sh './mvnw -V clean install -DskipTests -DskipITs -DskipDocs'
             }
         }
         stage('Test JVM') {
@@ -35,7 +27,7 @@ pipeline {
                 timeout(time: 90, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
             }
             post {
                 always {
@@ -48,7 +40,7 @@ pipeline {
                 timeout(time: 4, unit: 'HOURS')
             }
             steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
             }
             post {
                 always {
@@ -66,18 +58,6 @@ pipeline {
                 stage('Archive artifacts') {
                     steps {
                         archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
-                    }
-                }
-                stage('Documentation') {
-                    steps {
-                        publishHTML target: [
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'docs/target/generated-docs',
-                            reportFiles: 'index.html',
-                            reportName: 'Quarkus documentation'
-                        ]
                     }
                 }
             }

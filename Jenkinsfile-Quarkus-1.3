@@ -1,7 +1,7 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(17-18) */2 * *')
+        cron('H H(17-18) */3 * *')
     }
     tools {
         jdk 'graalvm'
@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh './mvnw clean install -DskipTests -DskipITs'
+                sh './mvnw -V clean install -DskipTests -DskipITs -DskipDocs'
             }
         }
         stage('Test JVM') {
@@ -27,7 +27,7 @@ pipeline {
                 timeout(time: 1, unit: 'HOURS')
             }
             steps {
-                sh './mvnw -fn clean verify'
+                sh './mvnw -fn clean verify -DskipDocs'
             }
             post {
                 always {
@@ -40,7 +40,7 @@ pipeline {
                 timeout(time: 3, unit: 'HOURS')
             }
             steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -DskipDocs'
             }
             post {
                 always {
@@ -58,18 +58,6 @@ pipeline {
                 stage('Archive artifacts') {
                     steps {
                         archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
-                    }
-                }
-                stage('Documentation') {
-                    steps {
-                        publishHTML target: [
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'docs/target/generated-docs',
-                            reportFiles: 'index.html',
-                            reportName: 'Quarkus documentation'
-                        ]
                     }
                 }
             }

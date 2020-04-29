@@ -1,7 +1,7 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(20-23) * * *')
+        cron('H H(19-20) * * *')
     }
     tools {
         jdk 'graalvm'
@@ -17,17 +17,9 @@ pipeline {
                 git 'https://github.com/quarkusio/quarkus'
             }
         }
-        stage ('Initialize') {
-            steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    which java
-                ''' 
-            }
-        }
         stage('Build') {
             steps {
-                sh './mvnw clean install -DskipTests -DskipITs'
+                sh './mvnw -V clean install -DskipTests -DskipITs -DskipDocs'
             }
         }
         stage('Test JVM') {
@@ -35,7 +27,7 @@ pipeline {
                 timeout(time: 1, unit: 'HOURS')
             }
             steps {
-                sh './mvnw -fn clean verify'
+                sh './mvnw -fn clean verify -DskipDocs'
             }
             post {
                 always {
