@@ -19,10 +19,10 @@ pipeline {
         }
         stage('JaCoCo run') {
             options {
-                timeout(time: 90, unit: 'MINUTES')
+                timeout(time: 120, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn -Ptest-coverage clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-keycloak'
+                sh './mvnw -fn -Ptest-coverage clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
             }
         }
         stage('JaCoCo report') {
