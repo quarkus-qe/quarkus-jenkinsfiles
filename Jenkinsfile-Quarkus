@@ -1,7 +1,7 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(19-20) * * *')
+        cron('H H(16-17) * * *')
     }
     tools {
         jdk 'graalvm'
@@ -24,7 +24,7 @@ pipeline {
         }
         stage('Test JVM') {
             options {
-                timeout(time: 1, unit: 'HOURS')
+                timeout(time: 2, unit: 'HOURS')
             }
             steps {
                 sh './mvnw -fn clean verify -DskipDocs'

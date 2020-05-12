@@ -1,7 +1,7 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(18-23) * * *')
+        cron('H H(13-14) * * *')
     }
     tools {
         jdk 'graalvm'
