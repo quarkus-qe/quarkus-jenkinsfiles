@@ -9,7 +9,7 @@ pipeline {
     options {
         timestamps()
         ansiColor("xterm")
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(numToKeepStr: '30'))
     }
     stages {
         stage('Checkout') {
@@ -24,10 +24,10 @@ pipeline {
         }
         stage('Test JVM') {
             options {
-                timeout(time: 2, unit: 'HOURS')
+                timeout(time: 3, unit: 'HOURS')
             }
             steps {
-                sh './mvnw -fn clean verify -DskipDocs'
+                sh "./mvnw -fn clean verify -DskipDocs -pl '!integration-tests/gradle,!integration-tests/devtools'"
             }
             post {
                 always {
@@ -37,10 +37,10 @@ pipeline {
         }
         stage('Test Native') {
             options {
-                timeout(time: 5, unit: 'HOURS')
+                timeout(time: 6, unit: 'HOURS')
             }
             steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative'
+                sh "GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -DskipDocs -pl '!integration-tests/gradle,!integration-tests/devtools' -Dnative"
             }
             post {
                 always {
