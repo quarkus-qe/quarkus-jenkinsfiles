@@ -60,18 +60,6 @@ pipeline {
                         archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
                     }
                 }
-                stage('Documentation') {
-                    steps {
-                        publishHTML target: [
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'docs/target/generated-docs',
-                            reportFiles: 'index.html',
-                            reportName: 'Quarkus documentation'
-                        ]
-                    }
-                }
             }
         }
     }
