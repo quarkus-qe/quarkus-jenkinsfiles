@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/quarkusio/quarkus'
+                git branch: 'main', url: 'https://github.com/quarkusio/quarkus.git'
             }
         }
         stage('Build') {
